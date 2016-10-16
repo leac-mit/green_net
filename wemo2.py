@@ -37,7 +37,9 @@ except:
     sys.exit(1)
 
 if __name__=="__main__":
-    get_help()
-    for i in range (100):
+#    get_help()
+    for i in range (1000):
+#        cur_pwr = h.current_power
+#        print cur_pwr
         print get_power()
-        time.sleep(1)
+        time.sleep(0.01)

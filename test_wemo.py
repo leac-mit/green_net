@@ -1,4 +1,4 @@
-from wemo import *
+from wemo3 import *
 import time
 """
 def get_query(print_str):
