@@ -71,7 +71,7 @@ class Oscilloscope():
             xspan = abs(xmax-xmin)
             yspan = abs(ymax-ymin)
             xsc = 1.0*(w+1)/xspan
-            ysc = 1.0*h/yspan
+            ysc = .9*h/yspan
             xp = (x-xmin)*xsc
             yp = h-(y-ymin)*ysc
             
@@ -92,6 +92,7 @@ class Oscilloscope():
         #Things we need in the main loop
         font = pygame.font.Font(pygame.font.match_font(u'mono'), 20)
         i = 0
+        last_time = time.time()
         while 1:
             #Process events
             event = pygame.event.poll()
@@ -110,6 +111,10 @@ class Oscilloscope():
 		
             text1= font.render(title, True, (255, 10, 10))
             self.screen.blit(text1, (10, 10))
+            for n in range(NUM_DEVICES):
+                text = font.render( "%d" % (1+n), True, colors[n])
+                self.screen.blit(text, (10, 50+40*n))
+
             for y in self.Y:
                 self.Y[y] = roll(self.Y[y], -1)
                 self.Y[y][-1] = switches[y].current_power
@@ -117,7 +122,7 @@ class Oscilloscope():
             xmin=0.
             ymin=0.
             xmax=float(self.data_buff_size)
-            ymax=100000.
+            ymax=2000000.
             self.plot(self.x,self.Y,xmin,xmax,ymin,ymax)
             pygame.display.flip()
             self.clock.tick(0)
@@ -127,6 +132,8 @@ class Oscilloscope():
                 i = 0
                 with open('data.csv', 'a') as f:
                     data = time.strftime("%Y%m%d-%H:%M:%S,")
+                    data +="%s,"% ( time.time()- last_time)
+                    last_time = time.time()
                     for j, n in enumerate(range(NUM_DEVICES)):
                         if n  in switches:
                             data += "%.5f" % self.Y[n][-1]# switches[n].current_power
