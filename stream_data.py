@@ -31,7 +31,14 @@ import os
 import time
 
 from wemo3 import *
-
+colors= [
+        (255, 0, 0),
+        (0, 255, 0),
+        (0, 0, 255),
+        (0, 255, 255),
+        (255, 0, 255),
+        (255, 255, 0)
+        ]
 pygame.init()
 
 
@@ -45,6 +52,7 @@ class Oscilloscope():
         self.screen = pygame.display.set_mode((self.w,self.h))
         self.clock = pygame.time.Clock()
         self.data_buff_size = 200
+        self.Y = {x:zeros(self.data_buff_size) for x in switches}
         self.y = zeros(self.data_buff_size)
         self.y2 = zeros(self.data_buff_size)
         self.x = arange(self.data_buff_size)
@@ -53,33 +61,30 @@ class Oscilloscope():
 
 
         
-    def plot(self, x, y, y2, xmin, xmax, ymin, ymax, color1, color2):
+    def plot(self, x, Y, xmin, xmax, ymin, ymax):
         w, h =(self.w,400) # self.screen.get_size()
-        x = array(x)
-        y = array(y)
-        y2 = array(y2)
-        
-        #Scale data
-        xspan = abs(xmax-xmin)
-        yspan = abs(ymax-ymin)
-        xsc = 1.0*(w+1)/xspan
-        ysc = 1.0*h/yspan
-        xp = (x-xmin)*xsc
-        yp = h-(y-ymin)*ysc
-        yp2 = h-(y2-ymin)*ysc
-        
-        #Draw grid
-        for i in range(10):
-            pygame.draw.line(self.screen, (210, 210, 210), (0,int(h*0.1*i)), (w-1,int(h*0.1*i)), 1)
-            pygame.draw.line(self.screen, (210, 210, 210), (int(w*0.1*i),0), (int(w*0.1*i),h-1), 1)
+        for n in Y:
+            y = array(Y[n])
+            x = array(x)
             
-        #Plot data
-        for i in range(len(xp)-1):
-            pygame.draw.line(self.screen, color1, (int(xp[i]), int(yp[i])), 
-                                                     (int(xp[i+1]),int(yp[i+1])), 5)
-            pygame.draw.line(self.screen, color2, (int(xp[i]), int(yp2[i])), 
-                                                     (int(xp[i+1]),int(yp2[i+1])), 5)
+            #Scale data
+            xspan = abs(xmax-xmin)
+            yspan = abs(ymax-ymin)
+            xsc = 1.0*(w+1)/xspan
+            ysc = 1.0*h/yspan
+            xp = (x-xmin)*xsc
+            yp = h-(y-ymin)*ysc
             
+            #Draw grid
+            for i in range(10):
+                pygame.draw.line(self.screen, (210, 210, 210), (0,int(h*0.1*i)), (w-1,int(h*0.1*i)), 1)
+                pygame.draw.line(self.screen, (210, 210, 210), (int(w*0.1*i),0), (int(w*0.1*i),h-1), 1)
+                
+            #Plot data
+            for i in range(len(xp)-1):
+                pygame.draw.line(self.screen, colors[n], (int(xp[i]), int(yp[i])), 
+                                                         (int(xp[i+1]),int(yp[i+1])), 5)
+                
 
 
     def run(self):
@@ -101,21 +106,40 @@ class Oscilloscope():
             # Display fps
             font = pygame.font.Font(pygame.font.match_font(u'mono'), 30)
             font.set_bold(True)
-	    title = "green_net"
+            title = "green_net"
 		
             text1= font.render(title, True, (255, 10, 10))
             self.screen.blit(text1, (10, 10))
-            self.y=roll(self.y, -1)
-            self.y2=roll(self.y2, -1)
-            self.y[-1]= get_power()
-            self.y2[-1]= switch_2.current_power
+            for y in self.Y:
+                self.Y[y] = roll(self.Y[y], -1)
+                self.Y[y][-1] = switches[y].current_power
+
             xmin=0.
             ymin=0.
             xmax=float(self.data_buff_size)
             ymax=100000.
-            self.plot(self.x,self.y,self.y2,xmin,xmax,ymin,ymax,(0)*3,(255,0,0))
+            self.plot(self.x,self.Y,xmin,xmax,ymin,ymax)
             pygame.display.flip()
             self.clock.tick(0)
             pygame.time.wait(1000)
+            i += 1
+            if i % 5 == 0:
+                i = 0
+                with open('data.csv', 'a') as f:
+                    data = time.strftime("%Y%m%d-%H:%M:%S,")
+                    for j, n in enumerate(range(NUM_DEVICES)):
+                        if n  in switches:
+                            data += "%.5f" % self.Y[n][-1]# switches[n].current_power
+                            #data += "%.5f" % switches[n].current_power
+                        else:
+                            data += "-1"
+                        
+                        if j == NUM_DEVICES-1:
+                            data += "\n"
+                        else:
+                            data += ","
+                    f.write(data)
+
+
 osc = Oscilloscope()
 
