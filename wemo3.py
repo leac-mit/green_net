@@ -12,7 +12,7 @@ def get_device(name):
     # TODO: run from 10am to 10pm
     env.start()
     print "Discovering Device %s" %name
-    env.discover(5)
+    env.discover(8)
     this_switch = env.get(name)
     return this_switch
 
