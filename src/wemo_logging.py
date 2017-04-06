@@ -25,8 +25,8 @@ def get_name(num):
 MAX_DEVICES = 15
 
 class WemoLogger ():
-    ASYNCH_RELOAD=5 # test reload switches every 30 seconds
-    LOG_FREQ = 3 # # log new data every 5 seconds
+    ASYNCH_RELOAD=5 # test reload switches every ASYNCH_RELOAD seconds
+    LOG_FREQ = 5 # # log new data every LOG_FREQ seconds
 
     def __init__(self, num_devices=1, debug=True):
         self.debug = debug
@@ -65,7 +65,7 @@ class WemoLogger ():
                 self.load_switches()
             time.sleep(self.ASYNCH_RELOAD)
 
-    def load_switches(self, timeout=8):
+    def load_switches(self, timeout=10):
         print "Entering discovery mode for %s seconds" % timeout
         self.env.discover(timeout)
         print "Done with Discovery.  Starting to sync switches"
