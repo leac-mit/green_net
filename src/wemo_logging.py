@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# Author: Ariel Anders
+
 import numpy as np
 import datetime
 import time
@@ -10,24 +13,20 @@ from argparse import ArgumentParser
 
 from multiprocessing import Process, Queue
 
-# silly hack for naming
-#MOD_NAMES =[""] +  "ten twenty thirthy fourty fifty sixty".split(" ")
-#get_name = lambda num: "switch%s_%d" % (MOD_NAMES[num/10],num%10)
-names = "ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty".split(" ")
 
 alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 def get_name(num):
     if num < 10:
         name = "switch_%d" % num
     else :
-        name = "switch_%s" % alphabet[num-10] # names[num-10]
+        name = "switch_%s" % alphabet[num-10] 
     return name
 
 MAX_DEVICES = 15
 
 class WemoLogger ():
     ASYNCH_RELOAD=5 # test reload switches every 30 seconds
-    LOG_FREQ = 3# 5 # log new data every 5 seconds
+    LOG_FREQ = 3 # # log new data every 5 seconds
 
     def __init__(self, num_devices=1, debug=True):
         self.debug = debug
@@ -118,23 +117,10 @@ class WemoLogger ():
         for t in range(self.q.qsize()):
             i, power = self.q.get()
             data[i-1] = power
-            #if (power == -1 or power==0) and (i in self.switches) and (i not in del_list):
             if (power == -1) and (i in self.switches) and (i not in del_list):
                 if self.debug: print "removing %s from list because power was 0" % get_name(i)
                 del_list.append(i)
 
-                """
-                try:
-                    data[i] = self.switches[i].current_power
-                except:
-                    print "error getting switch %s poower data" % get_name(i)
-                    del_list.append(i)
-                    # could not access switch power need to reload
-                    data[i] = -1
-            else:
-                data[i] = -1
-            #XXX if data[i] == 0 then it's probably invalid?
-        """
         for i in del_list:
             del self.switches[i]
         return data
@@ -179,8 +165,11 @@ if __name__=="__main__":
         """
         Welcome to wemo data logging by LEAC-MIT. 
         Enter the number of devices to log
+        Use argument -d or --debug for printing debug statements
         
         eg: python wemo_logging.py 10 
+
+        
     
         """)
 
