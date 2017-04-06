@@ -87,7 +87,8 @@ class WemoLogger ():
                 print "\tfail! could not connect device %s " % get_name(i)
         if args.debug:
             for i in range(0, 15):
-                print i, get_name(i), self.switches[i]
+                if i in self.switches:
+                    print i, get_name(i), self.switches[i]
             raw_input("press enter if naming is correct")
     
     def get_switch_power(self, i):
