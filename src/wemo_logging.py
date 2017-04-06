@@ -117,7 +117,7 @@ class WemoLogger ():
                     del_list.append(i)
         for t in range(self.q.qsize()):
             i, power = self.q.get()
-            data[i-1] = power
+            data[i] = power
             if (power == -1) and (i in self.switches) and (i not in del_list):
                 if self.debug: print "removing %s from list because power was 0" % get_name(i)
                 del_list.append(i)
