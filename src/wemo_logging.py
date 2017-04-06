@@ -1,0 +1,202 @@
+import numpy as np
+import datetime
+import time
+import ouimeaux
+from ouimeaux.environment import Environment
+import sys
+from threading import Thread
+import pdb
+from argparse import ArgumentParser
+
+from multiprocessing import Process, Queue
+
+# silly hack for naming
+#MOD_NAMES =[""] +  "ten twenty thirthy fourty fifty sixty".split(" ")
+#get_name = lambda num: "switch%s_%d" % (MOD_NAMES[num/10],num%10)
+names = "ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty".split(" ")
+
+alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+def get_name(num):
+    if num < 10:
+        name = "switch_%d" % num
+    else :
+        name = "switch_%s" % alphabet[num-10] # names[num-10]
+    return name
+
+MAX_DEVICES = 15
+
+class WemoLogger ():
+    ASYNCH_RELOAD=5 # test reload switches every 30 seconds
+    LOG_FREQ = 3# 5 # log new data every 5 seconds
+
+    def __init__(self, num_devices=1, debug=True):
+        self.debug = debug
+        print "initalizing the wemos for %s devices" % (num_devices)
+        self.NUM_DEVICES = num_devices
+        self.switches = {}
+        self.devices = range(0, self.NUM_DEVICES)
+        self.q = Queue()
+    
+        try:
+            self.env = Environment()
+            self.env.start()
+        except:
+            print """
+                Failed to access internet information. 
+                Are you connected to green net?"""
+            sys.exit(1)
+
+        
+        self.load_switches()
+        
+        if len(self.switches) == 0:
+            print "could not connect any devices. are you on green_net?"
+            sys.exit(1)
+
+        print """
+                Done connecting devices.  
+                Starting asynchronous wemo reloader now!"""
+
+        self.thread = Thread(target=self.reload_switch_spinner)
+        self.thread.start()
+
+    def reload_switch_spinner(self):
+        while True:
+            if len(self.switches) != self.NUM_DEVICES:
+                self.load_switches()
+            time.sleep(self.ASYNCH_RELOAD)
+
+    def load_switches(self, timeout=8):
+        print "Entering discovery mode for %s seconds" % timeout
+        self.env.discover(timeout)
+        print "Done with Discovery.  Starting to sync switches"
+        
+        for i in self.devices:
+            if i in self.switches:
+                #print "#XXX run test to make sure switch is active"
+                active = True #XXX fix me
+                if active: 
+                    #print "skipping switch %s - already active" % get_name(i)
+                    continue
+                else:
+                    del self.switches[i]
+
+            try:
+                self.switches[i] = self.env.get(get_name(i))
+                print "\t\tsuccess! connected to switch %s " % get_name(i)
+            except:
+                print "\tfail! could not connect device %s " % get_name(i)
+        if args.debug:
+            for i in range(0, 15):
+                print i, get_name(i), self.switches[i]
+            raw_input("press enter if naming is correct")
+    
+    def get_switch_power(self, i):
+        try:
+            power = self.switches[i].current_power
+            if self.debug: print "got data for %s , %s" % (get_name(i), power)
+        except:
+            power = -1
+        self.q.put( (i, power))
+
+
+
+    def get_data(self):
+        data = [0.0]*self.NUM_DEVICES
+        del_list = []
+        for i in self.devices:
+            if i in self.switches:
+                #TODO Paralleize this
+                p = Process(target=self.get_switch_power, args=(i,))
+                p.start()
+                p.join(3) # timeout 2 seconds
+                if p.is_alive():
+                    print "collecting data from %s took too long " % get_name(i)
+                    p.terminate()
+                    p.join()
+                    del_list.append(i)
+        for t in range(self.q.qsize()):
+            i, power = self.q.get()
+            data[i-1] = power
+            #if (power == -1 or power==0) and (i in self.switches) and (i not in del_list):
+            if (power == -1) and (i in self.switches) and (i not in del_list):
+                if self.debug: print "removing %s from list because power was 0" % get_name(i)
+                del_list.append(i)
+
+                """
+                try:
+                    data[i] = self.switches[i].current_power
+                except:
+                    print "error getting switch %s poower data" % get_name(i)
+                    del_list.append(i)
+                    # could not access switch power need to reload
+                    data[i] = -1
+            else:
+                data[i] = -1
+            #XXX if data[i] == 0 then it's probably invalid?
+        """
+        for i in del_list:
+            del self.switches[i]
+        return data
+    
+    def write_data(self,data):
+        string = ""
+        for date, dat in data:
+            string += "%s%s\n" % (date, (",").join([str(d) for d in dat])) 
+        with open('data.csv', 'a') as f:
+            f.write(string)
+
+    def run(self):
+        iters = 1
+        last_time = time.time()
+        data = [] 
+        while True:
+
+            # only write data every 5 data points
+            if iters % 5 == 0 : 
+                self.write_data(data)
+                iters=0
+                data = []
+            else:
+                iters += 1
+
+            # pause before collecting more data
+            time.sleep(self.LOG_FREQ)
+            
+            # get data
+            dat = self.get_data()
+
+            # get date and delta time
+            date = time.strftime("%Y%m%d-%H:%M:%S,")
+            date +="%s,"% ( time.time()- last_time)
+            last_time = time.time()
+
+            # add date to list
+            data.append ( (date, dat))
+
+if __name__=="__main__":
+    parser = ArgumentParser(usage=\
+        """
+        Welcome to wemo data logging by LEAC-MIT. 
+        Enter the number of devices to log
+        
+        eg: python wemo_logging.py 10 
+    
+        """)
+
+    parser.add_argument('num_devices', type=int)
+    parser.add_argument('-d',"--debug", action="store_true")
+    args = parser.parse_args()
+
+    try:
+        assert args.num_devices > 0 and args.num_devices <= MAX_DEVICES
+    except:
+        print """
+            %s is an invalid number of devices. 
+            The number must be between 1 and %d """ %\
+                    (args.num_devices, MAX_DEVICES)
+        sys.exit(1)
+    wl = WemoLogger(args.num_devices, args.debug)
+
+    wl.run()
+    sys.exit(0)
