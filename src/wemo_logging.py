@@ -25,7 +25,7 @@ def get_name(num):
 MAX_DEVICES = 15
 
 class WemoLogger ():
-    ASYNCH_RELOAD=5 # test reload switches every ASYNCH_RELOAD seconds
+    ASYNCH_RELOAD=10 # test reload switches every ASYNCH_RELOAD seconds
     LOG_FREQ = 5 # # log new data every LOG_FREQ seconds
 
     def __init__(self, num_devices=1, debug=True):
@@ -65,7 +65,7 @@ class WemoLogger ():
                 self.load_switches()
             time.sleep(self.ASYNCH_RELOAD)
 
-    def load_switches(self, timeout=3):
+    def load_switches(self, timeout=90):
         print "Entering discovery mode for %s seconds" % timeout
         self.env.discover(timeout)
         print "Done with Discovery.  Starting to sync switches"
@@ -135,7 +135,7 @@ class WemoLogger ():
                 #TODO Paralleize this
                 p[i] = Process(target=self.get_switch_power, args=(i,))
                 p[i].start()
-        time.sleep(.5)
+        time.sleep(self.LOG_FREQ)
         for i in self.devices:
             if i in self.switches:
                 if p[i] and p[i].is_alive():
@@ -168,7 +168,7 @@ class WemoLogger ():
         while True:
 
             # only write data every 5 data points
-            if iters % 5 == 0 : 
+            if iters % 1 == 0 : 
                 self.write_data(data)
                 iters=0
                 data = []
@@ -176,7 +176,7 @@ class WemoLogger ():
                 iters += 1
 
             # pause before collecting more data
-            time.sleep(self.LOG_FREQ)
+            #time.sleep(self.LOG_FREQ)
             
             # get data
             dat = self.get_data()
