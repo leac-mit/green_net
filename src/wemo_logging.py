@@ -153,6 +153,15 @@ class WemoLogger ():
         for i in del_list:
             del self.switches[i]
         return data
+
+    def get_energy(self, data):
+	energy = [0.0]*len(data)
+		
+	i = 0
+	while i < len(data):
+		energy[i] = data[i] * 0.1
+		
+	return energy
 			    
     def write_data(self,data):
         string = ""
@@ -180,6 +189,7 @@ class WemoLogger ():
             
             # get data
             dat = self.get_data()
+	    energy = self.get_energy()
 
             # get date and delta time
             date = time.strftime("%Y%m%d-%H:%M:%S,")
@@ -187,18 +197,14 @@ class WemoLogger ():
             last_time = time.time()
 
             # add date to list
-            data.append ( (date, dat))
+            data.append ( (date, dat, energy))
 
 parser = ArgumentParser(usage=\
 	"""
 	Welcome to wemo data logging by LEAC-MIT. 
 	Enter the number of devices to log
 	Use argument -d or --debug for printing debug statements
-
 	eg: python wemo_logging.py 10 
-
-
-
 	""")
 parser.add_argument('num_devices', type=int)
 parser.add_argument('-d',"--debug", action="store_true")
