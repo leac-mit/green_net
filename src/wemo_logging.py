@@ -153,15 +153,6 @@ class WemoLogger ():
         for i in del_list:
             del self.switches[i]
         return data
-
-    def get_energy(self, data):
-	energy = [0.0]*len(data)
-		
-	i = 0
-	while i < len(data):
-		energy[i] = data[i] * 0.1
-		
-	return energy
 			    
     def write_data(self,data):
         string = ""
@@ -189,7 +180,6 @@ class WemoLogger ():
             
             # get data
             dat = self.get_data()
-	    energy = self.get_energy()
 
             # get date and delta time
             date = time.strftime("%Y%m%d-%H:%M:%S,")
@@ -197,7 +187,7 @@ class WemoLogger ():
             last_time = time.time()
 
             # add date to list
-            data.append ( (date, dat, energy))
+            data.append ( (date, dat))
 
 parser = ArgumentParser(usage=\
 	"""
