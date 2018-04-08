@@ -156,6 +156,7 @@ class WemoLogger ():
 
 	def get_energy(self, data):
 		energy = [0.0]*len(data)
+		
 		i = 0
 		while i < len(data):
 			energy[i] = data[i] * 0.1
