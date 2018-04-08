@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Author: Ariel Anders
+# Author: Ariel Anders, Joseph Powell
 
 import numpy as np
 import datetime
