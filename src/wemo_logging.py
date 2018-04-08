@@ -189,6 +189,7 @@ class WemoLogger ():
             
             # get data
             dat = self.get_data()
+	    energy = self.get_energy()
 
             # get date and delta time
             date = time.strftime("%Y%m%d-%H:%M:%S,")
@@ -196,7 +197,7 @@ class WemoLogger ():
             last_time = time.time()
 
             # add date to list
-            data.append ( (date, dat))
+            data.append ( (date, dat, energy))
 
 parser = ArgumentParser(usage=\
 	"""
