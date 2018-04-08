@@ -154,14 +154,21 @@ class WemoLogger ():
             del self.switches[i]
         return data
 
-    def get_energy(self, data):
+    '''def get_energy(self, data):
 	energy = [0.0]*len(data)
 		
 	i = 0
 	while i < len(data):
 		energy[i] = data[i] * 0.1
 		
-	return energy
+	return energy'''
+	
+	def get_energy(data, time):
+		energy = [0.0]*len(data)
+		
+		
+		
+		
 			    
     def write_data(self,data):
         string = ""
@@ -189,11 +196,12 @@ class WemoLogger ():
             
             # get data
             dat = self.get_data()
-	    energy = self.get_energy()
 
             # get date and delta time
             date = time.strftime("%Y%m%d-%H:%M:%S,")
-            date +="%s,"% ( time.time()- last_time)
+			deltaT = time.time() - last_time
+			energy = self.get_energy(dat, deltaT)	
+            date +="%s,"% (deltaT)
             last_time = time.time()
 
             # add date to list
