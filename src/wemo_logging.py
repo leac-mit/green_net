@@ -153,7 +153,15 @@ class WemoLogger ():
         for i in del_list:
             del self.switches[i]
         return data
-    
+
+	def get_energy(self, data):
+		energy = [0.0]*len(data)
+		i = 0
+		while i < len(data):
+			energy[i] = data[i] * 0.1
+		
+		return energy
+			    
     def write_data(self,data):
         string = ""
         for date, dat in data:
