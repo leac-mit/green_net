@@ -126,7 +126,7 @@ class WemoLogger ():
 
 
 
-    def get_data(self):
+	def get_data(self):
         data = [0.0]*self.NUM_DEVICES
         del_list = []
         p = [None]*self.NUM_DEVICES
@@ -154,7 +154,7 @@ class WemoLogger ():
             del self.switches[i]
         return data
 
-	def get_energy(self, data):
+    def get_energy(self, data):
 		energy = [0.0]*len(data)
 		
 		i = 0
