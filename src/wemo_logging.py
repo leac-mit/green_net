@@ -163,16 +163,12 @@ class WemoLogger ():
 		
 	return energy'''
 	
-	def get_energy(data, time):
-		energy = [0.0]*len(data)
-		
-		
-		
-		
-			    
+    def get_energy(dat, time):
+	return dat*time
+					    
     def write_data(self,data):
         string = ""
-        for date, dat in data:
+        for date, dat, energy in data:
             string += "%s%s\n" % (date, (",").join([str(d) for d in dat])) 
         with open('data.csv', 'a') as f:
             f.write(string)
@@ -199,8 +195,8 @@ class WemoLogger ():
 
             # get date and delta time
             date = time.strftime("%Y%m%d-%H:%M:%S,")
-			deltaT = time.time() - last_time
-			energy = self.get_energy(dat, deltaT)	
+	    deltaT = time.time() - last_time
+	    energy = self.get_energy(dat, deltaT)	
             date +="%s,"% (deltaT)
             last_time = time.time()
 
