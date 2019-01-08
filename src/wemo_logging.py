@@ -42,14 +42,14 @@ class WemoLogger ():
         except:
             print """
                 Failed to access internet information. 
-                Are you connected to green net?"""
+                Are you connected to the router wifi?"""
             sys.exit(1)
 
         
         self.load_switches()
         
         if len(self.switches) == 0:
-            print "could not connect any devices. are you on green_net?"
+            print "could not connect any devices. are you on the router wifi?"
             sys.exit(1)
 
         print """
@@ -65,7 +65,7 @@ class WemoLogger ():
                 self.load_switches()
             time.sleep(self.ASYNCH_RELOAD)
 
-    def load_switches(self, timeout=90):
+    def load_switches(self, timeout=30):
         print "Entering discovery mode for %s seconds" % timeout
         self.env.discover(timeout)
         print "Done with Discovery.  Starting to sync switches"
