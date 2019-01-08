@@ -153,7 +153,7 @@ class WemoLogger ():
         for i in del_list:
             del self.switches[i]
         return data
-    
+			    
     def write_data(self,data):
         string = ""
         for date, dat in data:
